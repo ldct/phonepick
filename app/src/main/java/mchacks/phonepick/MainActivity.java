@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity
 {
@@ -26,9 +27,11 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        TextView tv = (TextView) findViewById(R.id.devicesListView);
+
         wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         wifiChannel = wifiManager.initialize(this, getMainLooper(), null);
-        wifiBroadCastReceiver = new WiFiDirectBroadcastReceiver(wifiManager, wifiChannel, this);
+        wifiBroadCastReceiver = new WiFiDirectBroadcastReceiver(tv, wifiManager, wifiChannel, this);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);

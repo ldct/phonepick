@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
+import android.widget.TextView;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
 {
@@ -18,7 +19,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
     private WifiP2pManager.Channel mChannel;
     private MainActivity mActivity;
 
-    public WiFiDirectBroadcastReceiver(WifiP2pManager wifiManager, WifiP2pManager.Channel wifiChannel, MainActivity mainActivity)
+    public WiFiDirectBroadcastReceiver(final TextView tv, WifiP2pManager wifiManager, WifiP2pManager.Channel wifiChannel, MainActivity mainActivity)
     {
         this.mManager = wifiManager;
         this.mChannel = wifiChannel;
@@ -35,12 +36,18 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
                 {
                     if(peers.getDeviceList().size() > 0)
                     {
+
                         WifiP2pDevice device = new WifiP2pDevice();
+                        String all_devices = "";
                         for(WifiP2pDevice x : peers.getDeviceList())
                         {
+                            all_devices += x.deviceName;
+                            all_devices += "\n";
                             Log.w("wifi", x.deviceName);
                             device = x;
                         }
+
+                        tv.setText(all_devices);
 
                         WifiP2pConfig config = new WifiP2pConfig();
                         config.deviceAddress = device.deviceAddress;
@@ -51,14 +58,12 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
                                 @Override
                                 public void onSuccess()
                                 {
-                                    //success logic
                                     Log.w("wifi", "Connection success");
                                 }
 
                                 @Override
                                 public void onFailure(int reason)
                                 {
-                                    //failure logic
                                     Log.w("wifi", "Connection Failure");
                                 }
                             });
@@ -73,6 +78,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
                     else
                     {
                         Log.w("wifi", "No devices found");
+                        tv.setText("No devices found");
                     }
 
                 }
