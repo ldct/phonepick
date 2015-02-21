@@ -3,6 +3,7 @@ package mchacks.phonepick;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -29,17 +30,51 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
                 Log.w("wifi", "peers available");
                 if (peers.equals(null)) {
                     Log.w("wifi", "peers list is null :(");
-                } else
+                }
+                else
                 {
                     if(peers.getDeviceList().size() > 0)
                     {
+                        WifiP2pDevice device = new WifiP2pDevice();
                         for(WifiP2pDevice x : peers.getDeviceList())
                         {
                             Log.w("wifi", x.deviceName);
+                            device = x;
                         }
+
+                        WifiP2pConfig config = new WifiP2pConfig();
+                        config.deviceAddress = device.deviceAddress;
+                        try
+                        {
+                            mManager.connect(mChannel, config, new WifiP2pManager.ActionListener()
+                            {
+                                @Override
+                                public void onSuccess()
+                                {
+                                    //success logic
+                                    Log.w("wifi", "Connection success");
+                                }
+
+                                @Override
+                                public void onFailure(int reason)
+                                {
+                                    //failure logic
+                                    Log.w("wifi", "Connection Failure");
+                                }
+                            });
+                        }
+                        catch(Exception e)
+                        {
+                            Log.w("wifi", e);
+                        }
+
+
                     }
                     else
+                    {
                         Log.w("wifi", "No devices found");
+                    }
+
                 }
             }
         };
@@ -53,6 +88,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 Log.w("wifi", "p2p enabled");
+
                 if (mManager != null) {
                     mManager.requestPeers(mChannel, myPeerListListener);
                 }
