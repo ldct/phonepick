@@ -3,6 +3,7 @@ package mchacks.phonepick;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
@@ -28,9 +29,17 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver
                 Log.w("wifi", "peers available");
                 if (peers.equals(null)) {
                     Log.w("wifi", "peers list is null :(");
-                } else {
-                    Log.w("wifi", "peers list is not null");
-                    Log.w("wifi", peers.toString());
+                } else
+                {
+                    if(peers.getDeviceList().size() > 0)
+                    {
+                        for(WifiP2pDevice x : peers.getDeviceList())
+                        {
+                            Log.w("wifi", x.deviceName);
+                        }
+                    }
+                    else
+                        Log.w("wifi", "No devices found");
                 }
             }
         };
