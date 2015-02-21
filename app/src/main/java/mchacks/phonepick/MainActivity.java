@@ -1,19 +1,34 @@
 package mchacks.phonepick;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+public class MainActivity extends ActionBarActivity
+{
 
-public class MainActivity extends ActionBarActivity {
+    WifiP2pManager wifiManager;
+    WifiP2pManager.Channel wifiChannel;
+    BroadcastReceiver wifiBroadCastReceiver;
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
 
+        wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        wifiChannel = wifiManager.initialize(this, getMainLooper(), null);
+        wifiBroadCastReceiver = new WiFiDirectBroadcastReceiver(wifiManager, wifiChannel, this);
+
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
