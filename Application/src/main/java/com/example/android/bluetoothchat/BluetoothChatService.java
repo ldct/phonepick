@@ -294,8 +294,8 @@ public class BluetoothChatService {
 
         public AcceptThread(boolean secure) {
             BluetoothServerSocket tmp = null;
-            mSocketType = secure ? "Secure" : "Insecure";
-
+            //mSocketType = secure ? "Secure" : "Insecure";
+            mSocketType = "Insecure";
             // Create a new listening server socket
             try {
                 if (secure) {

@@ -360,14 +360,24 @@ public class BluetoothChatFragment extends Fragment {
      * @param data   An {@link Intent} with {@link DeviceListActivity#EXTRA_DEVICE_ADDRESS} extra.
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
-    private void connectDevice(Intent data, boolean secure) {
-        // Get the device MAC address
-        String address = data.getExtras()
-                .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-        // Get the BluetoothDevice object
-        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        // Attempt to connect to the device
-        mChatService.connect(device, secure);
+    private void connectDevice(Intent data, boolean secure)
+    {
+
+        //TODO Connect to a list of devices...
+
+        // Get the devices MAC addresses
+        String[] addresses = data.getExtras().getStringArray(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+
+        // Get all the devices
+        BluetoothDevice[] devices = new BluetoothDevice[addresses.length];
+        int count = 0;
+        for(String address : addresses)
+        {
+            devices[count] = mBluetoothAdapter.getRemoteDevice(address);
+            // Attempt to connect to the device
+            Log.w("Bluetooth" , "Attempting to Connect to " + address);
+            mChatService.connect(devices[count++], secure);
+        }
     }
 
     @Override
