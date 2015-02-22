@@ -54,6 +54,8 @@ public class DeviceListActivity extends Activity {
      */
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
 
+    static int device_count_loop = 10;
+
     /**
      * Member fields
      */
@@ -77,13 +79,13 @@ public class DeviceListActivity extends Activity {
 
         //TODO Get rid of button, should always discover
         // Initialize the button to perform device discovery
-//        Button scanButton = (Button) findViewById(R.id.button_scan);
-//        scanButton.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-//                doDiscovery();
-//                v.setVisibility(View.GONE);
-//            }
-//        });
+        Button scanButton = (Button) findViewById(R.id.button_scan);
+        scanButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                doDiscovery();
+                v.setVisibility(View.GONE);
+            }
+        });
 
 
         // Initialize array adapters. One for already paired devices and
@@ -92,15 +94,15 @@ public class DeviceListActivity extends Activity {
                 new ArrayAdapter<String>(this, R.layout.device_name);
         mNewDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
 
-        // Find and set up the ListView for paired devices
+//        Find and set up the ListView for paired devices
         //ListView pairedListView = (ListView) findViewById(R.id.paired_devices);
         //pairedListView.setAdapter(pairedDevicesArrayAdapter);
         //pairedListView.setOnItemClickListener(mDeviceClickListener);
 
-        // Find and set up the ListView for newly discovered devices
-        //ListView newDevicesListView = (ListView) findViewById(R.id.new_devices);
-        //newDevicesListView.setAdapter(mNewDevicesArrayAdapter);
-        //newDevicesListView.setOnItemClickListener(mDeviceClickListener);
+//        Find and set up the ListView for newly discovered devices
+//        ListView newDevicesListView = (ListView) findViewById(R.id.new_devices);
+//        newDevicesListView.setAdapter(mNewDevicesArrayAdapter);
+//        newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -113,40 +115,50 @@ public class DeviceListActivity extends Activity {
         // Get the local Bluetooth adapter
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        Log.w("Bluetooth" , "Before Discovery");
         doDiscovery();
-        Log.w("Bluetooth" , "After Discovery");
-
 
         // Get a set of currently paired devices
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
-        Log.w("Bluetooth" , "Paired Devices: " + pairedDevices.toString());
+        //Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
+        //Log.w("Bluetooth" , "Paired Devices: " + pairedDevices.toString());
 
-        String[] addresses = new String[pairedDevices.size()];
+       // String[] addresses = new String[pairedDevices.size()];
 
         // If there are paired devices, add each one to the ArrayAdapter
-        if (pairedDevices.size() > 0) {
-            findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
-            int count = 0;
-            for (BluetoothDevice device : pairedDevices) {
-                //pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+//        if (pairedDevices.size() > 0) {
+//            findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
+//            int count = 0;
+//            for (BluetoothDevice device : pairedDevices) {
+//                //pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+//
+//                addresses[count++] = device.getAddress();
+//                Log.w("Bluetooth" , "Found Device: " + device.getName() + " with address " + device.getAddress());
+//            }
+//        } else {
+//            String noDevices = getResources().getText(R.string.none_paired).toString();
+//            pairedDevicesArrayAdapter.add(noDevices);
+//        }
+    }
 
-                addresses[count++] = device.getAddress();
-                Log.w("Bluetooth" , "Found Device: " + device.getName() + " with address " + device.getAddress());
+    protected void onDiscoverComplete()
+    {
+        int newDevices = mNewDevicesArrayAdapter.getCount();
+        String[] addresses = new String[newDevices];
+        if(newDevices > 0) {
+            for (int count = 0; count < newDevices; count++) {
+                 String address = mNewDevicesArrayAdapter.getItem(count);
+                addresses[count] = address.substring(address.length() - 17);
+                Log.w("Bluetooth", "Found Device with address: " + addresses[count]);
             }
-        } else {
-            String noDevices = getResources().getText(R.string.none_paired).toString();
-            pairedDevicesArrayAdapter.add(noDevices);
+
+            // Create the result Intent and include the MAC address
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_DEVICE_ADDRESS, addresses);
+
+            // Set result and finish this Activity
+            setResult(Activity.RESULT_OK, intent);
+            //mBtAdapter.cancelDiscovery();
+            finish();
         }
-
-        // Create the result Intent and include the MAC address
-        Intent intent = new Intent();
-        intent.putExtra(EXTRA_DEVICE_ADDRESS, addresses);
-
-        // Set result and finish this Activity
-        setResult(Activity.RESULT_OK, intent);
-        Log.w("Bluetooth" , "Going into connect device");
-        finish();
     }
 
     @Override
@@ -170,7 +182,7 @@ public class DeviceListActivity extends Activity {
 
         // Indicate scanning in the title
         setProgressBarIndeterminateVisibility(true);
-        setTitle(R.string.scanning);
+        Log.w("Bluetooth", "Scanning for devices");
 
         // Turn on sub-title for new devices
         //findViewById(R.id.title_new_devices).setVisibility(View.VISIBLE);
@@ -179,6 +191,8 @@ public class DeviceListActivity extends Activity {
         if (mBtAdapter.isDiscovering()) {
             mBtAdapter.cancelDiscovery();
         }
+
+        Log.w("Bluetooth", "Starting Discovery");
 
         // Request discover from BluetoothAdapter
         mBtAdapter.startDiscovery();
@@ -191,7 +205,7 @@ public class DeviceListActivity extends Activity {
             = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
             // Cancel discovery because it's costly and we're about to connect
-            //mBtAdapter.cancelDiscovery();
+            mBtAdapter.cancelDiscovery();
 
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
@@ -223,16 +237,18 @@ public class DeviceListActivity extends Activity {
                 // If it's already paired, skip it, because it's been listed already
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
                     mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                    Log.w("Bluetooth", "Device with name " + device.getName() + " and address " + device.getAddress());
                 }
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 setProgressBarIndeterminateVisibility(false);
-                setTitle(R.string.select_device);
+                Log.w("Bluetooth", "Discovery Ended");
                 if (mNewDevicesArrayAdapter.getCount() == 0) {
                     String noDevices = getResources().getText(R.string.none_found).toString();
                     mNewDevicesArrayAdapter.add(noDevices);
                 }
             }
+            onDiscoverComplete();
         }
     };
 

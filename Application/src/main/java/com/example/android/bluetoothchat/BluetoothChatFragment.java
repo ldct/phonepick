@@ -185,6 +185,8 @@ public class BluetoothChatFragment extends Fragment {
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
+
+        ensureDiscoverable();
     }
 
     /**
@@ -194,7 +196,7 @@ public class BluetoothChatFragment extends Fragment {
         if (mBluetoothAdapter.getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
             startActivity(discoverableIntent);
         }
     }
@@ -279,22 +281,26 @@ public class BluetoothChatFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
             FragmentActivity activity = getActivity();
-            switch (msg.what) {
+            switch (msg.what)
+            {
                 case Constants.MESSAGE_STATE_CHANGE:
-                    switch (msg.arg1) {
+                    switch (msg.arg1)
+                    {
                         case BluetoothChatService.STATE_CONNECTED:
-                            setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
+                            //setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
                             mConversationArrayAdapter.clear();
+
                             break;
                         case BluetoothChatService.STATE_CONNECTING:
-                            setStatus(R.string.title_connecting);
+                            //setStatus(R.string.title_connecting);
                             break;
                         case BluetoothChatService.STATE_LISTEN:
+
                         case BluetoothChatService.STATE_NONE:
-                            setStatus(R.string.title_not_connected);
+                            //setStatus(R.string.title_not_connected);
                             break;
                     }
-                    break;
+                break;
                 case Constants.MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
@@ -306,11 +312,13 @@ public class BluetoothChatFragment extends Fragment {
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+                    Log.w("Bluetooth", "Message Received");
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
                     mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
-                    if (null != activity) {
+                    if (null != activity)
+                    {
                         Toast.makeText(activity, "Connected to "
                                 + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
                     }
@@ -363,8 +371,7 @@ public class BluetoothChatFragment extends Fragment {
     private void connectDevice(Intent data, boolean secure)
     {
 
-        //TODO Connect to a list of devices...
-
+        Log.w("Bluetooth", "in method ConnectDevice");
         // Get the devices MAC addresses
         String[] addresses = data.getExtras().getStringArray(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 
@@ -386,12 +393,13 @@ public class BluetoothChatFragment extends Fragment {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         switch (item.getItemId()) {
             case R.id.secure_connect_scan: {
                 // Launch the DeviceListActivity to see devices and do scan
                 Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
-                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
                 return true;
             }
             case R.id.insecure_connect_scan: {
